@@ -14,6 +14,8 @@ import (
 type config struct {
 	Username string
 	Password string
+	Front string
+	Back string
 }
 
 const (
@@ -23,12 +25,9 @@ const (
 func main() {
 	config := setConfig()
 
-	fmt.Printf("%#v", config)
-	fmt.Println(config.encodeAuth())
-
 	requestBody, err := json.Marshal(map[string]interface{}{
-		"Front": "8bc0efe8-3ef5-49d6-af93-ad4d60752dee",
-		"Back": "8bc0efe8-3ef5-49d6-af93-ad4d60752dee",
+		"Front": config.Front,
+		"Back": config.Back,
 		"WaitForRender": "true",
 		"Description": "Sample Request",
 		"Size": "4.25x6",
@@ -76,12 +75,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println(string(body))
+	var parsedResp map[string]interface{}
+
+	err = json.Unmarshal(body, &parsedResp)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(parsedResp["RenderedPdf"])
 }
 
 func setConfig() config {
 	username := flag.String("username", "", "Enter in username")
 	password := flag.String("password", "", "Enter in password")
+	front := flag.String("front", "", "Enter in front")
+	back := flag.String("back", "", "Enter in back")
+
 
 	flag.Parse()
 
@@ -95,9 +104,21 @@ func setConfig() config {
 		os.Exit(1)
 	}
 
+	if *front == "" || front == nil {
+		fmt.Println("Must pass in front flag")
+		os.Exit(1)
+	}
+
+	if *back == "" || back == nil {
+		fmt.Println("Must pass in back flag")
+		os.Exit(1)
+	}
+
 	return config{
 		Username: *username,
 		Password: *password,
+		Front: *front,
+		Back: *back,
 	}
 }
 
